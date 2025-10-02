@@ -3,6 +3,7 @@ export interface ITags {
 }
 
 export interface IData {
+  id: number,
   tags: Array<ITags> | String;
   type: String;
   login: String;

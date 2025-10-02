@@ -8,6 +8,7 @@ export const useRecordStore = defineStore("counter", () => {
 
   function addRecordFunc() {
     const data: IData = {
+      id: 0,
       tags: "",
       type: "Локальная",
       login: "",
@@ -39,6 +40,8 @@ export const useRecordStore = defineStore("counter", () => {
   }
 
   const saveRecordsFunc = (idx) => {
+    let storedRecords = JSON.parse(localStorage.getItem("records"));
+
     const saveData = [...records.value];
 
     let isErrorPassword = false;
@@ -50,19 +53,34 @@ export const useRecordStore = defineStore("counter", () => {
     }
 
     if (
-      records.value[idx].tags.trim() === "" ||
+      // records.value[idx].tags.trim() === "" ||
       records.value[idx].login.trim() === "" ||
       isErrorPassword
     ) {
       records.value[idx].isError = true;
+
+      console.log(storedRecords);
+
+      if (storedRecords.find((item) => item.id == records.value[idx].id)) {
+        storedRecords = storedRecords.filter(
+          (item) => item.id != records.value[idx].id
+        );
+      }
+
+      localStorage.setItem("records", JSON.stringify(storedRecords));
     } else {
+      records.value[idx].id = records.value.length;
       records.value[idx].isError = false;
 
       // Преобразуем строку тегов в массив перед сохранением
       saveData[idx].tags = saveData[idx].tags
         .split(";")
-        .map((tag: string) => tag.trim())
-        .filter((tag: string) => tag !== "");
+        .map((tag: string) => {
+          return {
+            text: tag.trim(),
+          };
+        })
+        .filter((tag: string) => tag.text !== "");
 
       localStorage.setItem("records", JSON.stringify(saveData));
       getRecordsFunc(); // Обновляем данные после сохранения
@@ -76,11 +94,15 @@ export const useRecordStore = defineStore("counter", () => {
       records.value = storedRecords.map((record: IData) => {
         // Если tags — массив, то объединяем его в строку через ;
         if (Array.isArray(record.tags)) {
-          record.tags = record.tags.join("; ");
+          record.tags = record.tags.map((tag) => tag.text).join("; ");
         }
         return record;
       });
     }
+  };
+
+  const updateTagsFunc = (idx, tags) => {
+    records.value[idx].tags = tags;
   };
 
   return {
@@ -91,5 +113,6 @@ export const useRecordStore = defineStore("counter", () => {
     onInputFunc,
     saveRecordsFunc,
     getRecordsFunc,
+    updateTagsFunc,
   };
 });

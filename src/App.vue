@@ -25,46 +25,50 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(record, idx) in record.records">
+              <tr v-for="(item, idx) in record.records">
                 <td>
                   <Textarea
                     class="main__table-textarea"
                     autoResize
                     placeholder="Значение"
                     rows="1"
-                    v-model="record.tags"
-                    :invalid="record.tags == '' && record.isError"
                     @blur="() => saveRecords(idx)"
+                    :maxlength="50"
+                    @input="(e) => filterAndUppercase(e, idx)"
+                    :value="item.tags"
                   />
+                  <!-- :invalid="record.tags == '' && record.isError" -->
                 </td>
                 <td>
                   <Select
-                    v-model="record.type"
+                    v-model="item.type"
                     :options="types"
                     optionLabel=""
                     class="main__table-select"
-                    @change="() => onChangeType(record.type, idx)"
+                    @change="() => onChangeType(item.type, idx)"
                   />
                 </td>
-                <td :colspan="record.password === null && '2'">
+                <td :colspan="item.password === null && '2'">
                   <InputText
                     class="main__table-input"
                     name="login"
                     type="text"
                     placeholder="Значение"
-                    v-model="record.login"
+                    v-model="item.login"
+                    :maxlength="100"
                     @blur="() => saveRecords(idx)"
-                    :invalid="record.login == '' && record.isError"
+                    :invalid="item.login == '' && item.isError"
                   />
                 </td>
-                <td v-if="record.password !== null">
+                <td v-if="item.password !== null">
                   <Password
-                    v-model="record.password"
+                    v-model="item.password"
                     toggleMask
                     style="font-size: 20px"
                     @blur="() => saveRecords(idx)"
                     placeholder="Пароль"
-                    :invalid="record.password == '' && record.isError"
+                    :maxlength="100"
+                    :invalid="item.password == '' && item.isError"
                   />
                 </td>
                 <td>
@@ -85,87 +89,111 @@
   </div>
 </template>
 <script setup>
-import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Textarea from "primevue/textarea";
+  import Button from "primevue/button";
+  import InputText from "primevue/inputtext";
+  import Textarea from "primevue/textarea";
 
-import { onMounted, ref } from "vue";
-import { Password, Select } from "primevue";
-import { useRecordStore } from "./stores/record";
+  import { onMounted, ref } from "vue";
+  import { Password, Select } from "primevue";
+  import { useRecordStore } from "./stores/record";
 
-const types = ref(["Локальная", "LDAP"]);
+  const types = ref(["Локальная", "LDAP"]);
 
-// const selectedType = ref(types.value[0]);
+  // const selectedType = ref(types.value[0]);
 
-const saveRecords = (idx) => {
-  record.saveRecordsFunc(idx);
-};
+  const saveRecords = (idx) => {
+    record.saveRecordsFunc(idx);
+  };
 
-const record = useRecordStore();
+  const record = useRecordStore();
 
-const addRecord = () => {
-  record.addRecordFunc();
-};
+  const addRecord = () => {
+    record.addRecordFunc();
+  };
 
-// const onInput = (e) => {
-//   record.onInputFunc(e.target.text);
-// };
+  // const onInput = (e) => {
+  //   record.onInputFunc(e.target.text);
+  // };
 
-const removeRecord = (idx) => {
-  record.removeRecordFunc(idx);
-};
+  const removeRecord = (idx) => {
+    record.removeRecordFunc(idx);
+  };
 
-const onChangeType = (idx, type) => {
-  record.changeTypeFunc(idx, type);
-};
+  const onChangeType = (idx, type) => {
+    record.changeTypeFunc(idx, type);
+  };
 
-onMounted(() => {
-  record.getRecordsFunc();
-});
+  const filterAndUppercase = (event, idx) => {
+    let value = event.target.value;
+    record.updateTagsFunc(idx, value);
+  };
+
+  onMounted(() => {
+    record.getRecordsFunc();
+  });
 </script>
 <style scoped lang="scss">
-.main {
-  padding-top: 40px;
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 20px;
-  }
-
-  &__title {
-    font-weight: 700;
-    font-size: 30px;
-  }
-
-  &__info {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    background-color: rgb(225, 234, 236);
-    padding: 5px;
-    margin-bottom: 20px;
-  }
-
-  &__table {
-    &-input {
-      width: 100%;
+  .main {
+    padding-top: 40px;
+    &__header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 20px;
     }
 
-    &-textarea {
-      width: 100%;
+    &__title {
+      font-weight: 700;
+      font-size: 30px;
     }
 
-    &-select {
-      width: 100%;
+    &__info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background-color: rgb(225, 234, 236);
+      padding: 5px;
+      margin-bottom: 20px;
     }
 
-    tbody {
-      td {
-        padding: 20px 10px;
-        vertical-align: middle;
+    &__table {
+      &-input {
+        width: 100%;
+      }
+
+      &-textarea {
+        width: 100%;
+      }
+
+      &-select {
+        width: 100%;
+      }
+
+      th {
+        // width: 100%;
+        &:nth-child(1) {
+          width: 270px;
+        }
+        &:nth-child(2) {
+          width: 270px;
+        }
+        &:nth-child(3) {
+          width: 270px;
+        }
+        &:nth-child(4) {
+          width: 270px;
+        }
+        &:nth-child(5) {
+          width: 62px;
+        }
+      }
+
+      tbody {
+        td {
+          padding: 20px 10px;
+          vertical-align: middle;
+        }
       }
     }
   }
-}
 </style>
